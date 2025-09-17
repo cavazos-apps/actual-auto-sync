@@ -2,10 +2,8 @@
   "extends": ["config:recommended"],
   "dependencyDashboard": true,
   "lockFileMaintenance": {
-    "enabled": true,
-    "schedule": ["before 6am on monday"]
+    "enabled": true
   },
-  "schedule": ["before 6am on monday"],
   "labels": ["dependencies"],
   "rangeStrategy": "bump",
   "automerge": true,
