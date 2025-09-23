@@ -1,4 +1,4 @@
-name: Main Branch Build and Deploy
+name: Build, Test, Release and Deploy
 
 on:
   push:
@@ -9,21 +9,28 @@ on:
       - "*.md"
 
 jobs:
-  build-test-deploy:
+  build-test-release-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      packages: write
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: "22.19.0"
 
       - name: Install pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: 10
+          version: 10.17.1
           run_install: false
 
       - name: Get pnpm store directory
@@ -55,9 +62,16 @@ jobs:
           verbose: true
           fail_ci_if_error: false
 
-      - name: Generate commit hash
-        id: commit_hash
-        run: echo "hash=${GITHUB_SHA::8}" >> $GITHUB_OUTPUT
+      - name: Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx semantic-release
+
+      - name: Get latest release version
+        id: version
+        run: |
+          VERSION=$(git describe --tags --abbrev=0)
+          echo "version=${VERSION#v}" >> $GITHUB_OUTPUT
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -75,4 +89,4 @@ jobs:
           push: true
           tags: |
             seriouslag/actual-auto-sync:latest
-            seriouslag/actual-auto-sync:${{ steps.commit_hash.outputs.hash }}
+            seriouslag/actual-auto-sync:${{ steps.version.outputs.version }}
