@@ -22,7 +22,7 @@ jobs:
           node-version: '24.11.0'
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: 10.21.0
           run_install: false
@@ -59,7 +59,7 @@ jobs:
         run: pnpm test:e2e:docker
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           verbose: true
