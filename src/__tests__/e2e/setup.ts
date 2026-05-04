@@ -107,23 +107,54 @@ export async function waitForServer(maxAttempts = 30, delayMs = 1000): Promise<v
 }
 
 /**
- * Initialize the Actual API connection
+ * Initialize the Actual API connection.
+ *
+ * Prefers the shared session token captured by globalSetup
+ * (process.env.ACTUAL_E2E_SESSION_TOKEN) so we don't consume an attempt
+ * against the server's 5-per-15-minute /account/login rate limit on every
+ * test file. Falls back to password auth (with retry) if the token is
+ * missing or rejected — e.g. if a developer runs a single file without
+ * globalSetup, or the server was restarted mid-run.
  */
-export async function initApi(): Promise<void> {
+export async function initApi(options: { dataDir?: string } = {}): Promise<void> {
+  const dataDir = options.dataDir ?? E2E_CONFIG.dataDir;
+
   // @actual-app/api export/upload paths read this env var directly.
   // Keep it aligned with the dataDir we initialize with so E2E runs are consistent
   // both inside and outside docker-compose.
-  process.env.ACTUAL_DATA_DIR = E2E_CONFIG.dataDir;
+  process.env.ACTUAL_DATA_DIR = dataDir;
 
-  await mkdir(E2E_CONFIG.dataDir, { recursive: true });
+  await mkdir(dataDir, { recursive: true });
 
+  const sessionToken = process.env.ACTUAL_E2E_SESSION_TOKEN;
+  if (sessionToken) {
+    try {
+      await api.init({
+        dataDir,
+        serverURL: E2E_CONFIG.serverUrl,
+        sessionToken,
+      });
+      return;
+    } catch (error) {
+      // If the cached token is rejected, drop it and fall through to password
+      // auth. This lets us recover when, e.g., the server restarts mid-run.
+      const message = error instanceof Error ? error.message : String(error);
+      console.log(`initApi: cached session token rejected (${message}); retrying with password`);
+      delete process.env.ACTUAL_E2E_SESSION_TOKEN;
+    }
+  }
+
+  await initApiWithPassword(dataDir);
+}
+
+async function initApiWithPassword(dataDir: string): Promise<void> {
   // The Actual Budget server rate-limits authentication when many api.init() calls
   // are made in quick succession across test suites. Retry with backoff when hit.
   const maxRetries = 3;
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       await api.init({
-        dataDir: E2E_CONFIG.dataDir,
+        dataDir,
         serverURL: E2E_CONFIG.serverUrl,
         password: E2E_CONFIG.serverPassword,
       });

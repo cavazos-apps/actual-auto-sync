@@ -729,11 +729,7 @@ describe('E2E: Multi-Budget duplicate regression (issue #64)', () => {
       const { sync: runAutoSync } = await import(`../../utils.js?issue64-single-run=${Date.now()}`);
       await runAutoSync();
 
-      await api.init({
-        dataDir: AUTO_SYNC_DATA_DIR,
-        serverURL: E2E_CONFIG.serverUrl,
-        password: E2E_CONFIG.serverPassword,
-      });
+      await initApi({ dataDir: AUTO_SYNC_DATA_DIR });
 
       const syncIdToBudgetId = await getSyncIdMaps(AUTO_SYNC_DATA_DIR);
       const downloadedBudget1Id = syncIdToBudgetId[budget1.syncId];

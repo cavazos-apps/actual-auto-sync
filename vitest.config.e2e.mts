@@ -8,6 +8,10 @@ export default defineConfig({
     include: ['src/__tests__/e2e/**/*.e2e.test.ts'],
     // Setup file to intercept unhandled rejections from @actual-app/api
     setupFiles: ['./src/__tests__/e2e/vitest-setup.ts'],
+    // Login once and share the session token via env var so each test file
+    // does not consume an attempt against the server's 5-per-15-minute
+    // /account/login rate limit.
+    globalSetup: ['./src/__tests__/e2e/global-setup.ts'],
     // E2E tests need longer timeouts for server operations
     testTimeout: 60_000,
     hookTimeout: 60_000,
