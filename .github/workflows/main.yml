@@ -101,7 +101,7 @@ jobs:
           }
 
           const versionPattern = new RegExp(`^${baseVersion.replace(/\./g, "\\.")}\\.(\\d+)$`);
-          let nextUrl = "https://hub.docker.com/v2/repositories/seriouslag/actual-auto-sync/tags?page_size=100";
+          let nextUrl = "https://hub.docker.com/v2/repositories/cavazosapps/actual-auto-sync/tags?page_size=100";
           let maxInternalRelease = 0;
 
           (async () => {
@@ -151,10 +151,10 @@ jobs:
         id: docker_tags
         shell: bash
         run: |
-          TAGS="seriouslag/actual-auto-sync:latest
-          seriouslag/actual-auto-sync:${{ steps.commit_hash.outputs.hash }}
-          seriouslag/actual-auto-sync:${{ steps.internal_release.outputs.version }}
-          seriouslag/actual-auto-sync:v${{ steps.internal_release.outputs.version }}"
+          TAGS="cavazosapps/actual-auto-sync:latest
+          cavazosapps/actual-auto-sync:${{ steps.commit_hash.outputs.hash }}
+          cavazosapps/actual-auto-sync:${{ steps.internal_release.outputs.version }}
+          cavazosapps/actual-auto-sync:v${{ steps.internal_release.outputs.version }}"
 
           {
             echo "tags<<EOF"
@@ -168,7 +168,7 @@ jobs:
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: seriouslag
+          username: cavazosapps
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push Docker image
