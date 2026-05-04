@@ -117,11 +117,35 @@ export async function initApi(): Promise<void> {
 
   await mkdir(E2E_CONFIG.dataDir, { recursive: true });
 
-  await api.init({
-    dataDir: E2E_CONFIG.dataDir,
-    serverURL: E2E_CONFIG.serverUrl,
-    password: E2E_CONFIG.serverPassword,
-  });
+  // The Actual Budget server rate-limits authentication when many api.init() calls
+  // are made in quick succession across test suites. Retry with backoff when hit.
+  const maxRetries = 3;
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      await api.init({
+        dataDir: E2E_CONFIG.dataDir,
+        serverURL: E2E_CONFIG.serverUrl,
+        password: E2E_CONFIG.serverPassword,
+      });
+      return;
+    } catch (error) {
+      if (
+        attempt < maxRetries &&
+        error instanceof Error &&
+        error.message.includes('too-many-requests')
+      ) {
+        const delayMs = attempt * 5000;
+        console.log(
+          `initApi rate-limited; retrying in ${delayMs}ms (attempt ${attempt}/${maxRetries})...`,
+        );
+        await new Promise((resolve) => {
+          setTimeout(resolve, delayMs);
+        });
+        continue;
+      }
+      throw error;
+    }
+  }
 }
 
 /**
