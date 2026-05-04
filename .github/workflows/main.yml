@@ -61,12 +61,12 @@ jobs:
       - name: Run e2e tests
         run: pnpm test:e2e:docker
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v6
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          verbose: true
-          fail_ci_if_error: false
+      # - name: Upload coverage to Codecov
+      #   uses: codecov/codecov-action@v6
+      #   with:
+      #     token: ${{ secrets.CODECOV_TOKEN }}
+      #     verbose: true
+      #     fail_ci_if_error: false
 
       - name: Generate commit hash
         id: commit_hash
