@@ -19,6 +19,13 @@ const ACTUAL_DATA_DIR = './data';
 // Keep retries small to avoid long loops while still healing transient API/session issues.
 const MAX_BUDGET_SYNC_ATTEMPTS = 2;
 
+function getInternalOrThrow() {
+  if (!internal) {
+    throw new Error('Actual API internal is not available. Did you call init() first?');
+  }
+  return internal;
+}
+
 export function formatCronSchedule(schedule: string) {
   return cronstrue.toString(schedule).toLowerCase();
 }
@@ -34,8 +41,9 @@ interface AccountBalanceSyncInput {
 
 async function getAccountsForBalanceSync(): Promise<AccountBalanceSyncInput> {
   try {
+    const { db } = getInternalOrThrow();
     return {
-      accounts: (await internal.db.getAccounts()) as AccountBalanceRow[],
+      accounts: (await db.getAccounts()) as AccountBalanceRow[],
       readFailed: false,
     };
   } catch (error) {
@@ -49,7 +57,8 @@ async function getAccountsForBalanceSync(): Promise<AccountBalanceSyncInput> {
 
 async function syncAccountBalanceToCRDT(account: AccountBalanceRow): Promise<boolean> {
   try {
-    await internal.db.update('accounts', {
+    const { db } = getInternalOrThrow();
+    await db.update('accounts', {
       id: account.id,
       balance_current: account.balance_current,
     });
