@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "@actual-app/api": "^26.5.0",
-    "@actual-app/crdt": "^2.1.0",
+    "@actual-app/crdt": "^3.0.0",
     "@t3-oss/env-core": "^0.13.11",
     "better-sqlite3": "^12.9.0",
     "cron": "^4.4.0",
