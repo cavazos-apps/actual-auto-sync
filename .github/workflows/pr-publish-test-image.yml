@@ -47,7 +47,7 @@ jobs:
 
       - name: Checkout PR head
         if: steps.permission.outputs.authorized == 'true'
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: refs/pull/${{ github.event.issue.number }}/head
 
